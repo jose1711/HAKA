@@ -1,19 +1,21 @@
 import os
+import shutil
 import sys
 import urllib
 import urllib.parse
 
+import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
+import xbmcvfs
 from xbmc import log as xbmc_log
 
 import requests
 import yaml
 import calendar
-import time
 from urllib.parse import parse_qsl
-from datetime import datetime
+from datetime import datetime, timedelta
 import iso8601
 
 base_url = sys.argv[0]
@@ -25,12 +27,13 @@ __addonname__ = __addon__.getAddonInfo('name')
 __icon__ = __addon__.getAddonInfo('icon')
 __addonid__ = __addon__.getAddonInfo('id')
 __addonpath__ = __addon__.getAddonInfo('path')
+__profilepath__ = xbmcvfs.translatePath(__addon__.getAddonInfo('profile'))
 
 mode = args.get('mode', None)
 
 imgIconResourcePath = os.path.join(__addonpath__,'resources','img','icon')
 imgFanartResourcePath = os.path.join(__addonpath__,'resources','img','fanart')
-fileHakaFavourites = os.path.join(__addonpath__,'hakaFavourites.yaml')
+fileHakaFavourites = os.path.join(__profilepath__,'hakaFavourites.yaml')
 dummyWav = os.path.join(__addonpath__,'resources','1.wav')
 
 haDomainNames =         ['automation',  'camera',   'climate',  'fan',      'group',    'light',    'person',   'scene',    'script',   'sensor',   'switch',   'vacuum',   ]
@@ -371,7 +374,11 @@ log('HAKA Started')
 importDomainSettings()
 
 if not os.path.exists(fileHakaFavourites):
-    open(fileHakaFavourites, 'w').close()
+    old_path = os.path.join(__addonpath__, "hakaFavourites.yaml")
+    if os.path.exists(old_path):
+        shutil.copy(old_path, fileHakaFavourites)
+    else:
+        open(fileHakaFavourites, 'w').close()
 
 if not have_credentials():
     log('Credentials could not be read or are empty.')
